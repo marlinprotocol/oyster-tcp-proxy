@@ -1,7 +1,15 @@
 [package]
-name = "proxy"
+name = "tokio-proxy"
 version = "0.1.0"
 edition = "2021"
+
+[[bin]]
+name = "vsock-to-ip"
+path = "src/vsock_to_ip.rs"
+
+[[bin]]
+name = "ip-to-vsock"
+path = "src/ip_to_vsock.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -9,3 +17,4 @@ edition = "2021"
 tokio = { version = "1.20.1", features = ["full"] }
 tokio-vsock = "0.3.2"
 futures = "0.3"
+clap = { version = "3.2.19", features = ["derive"] }

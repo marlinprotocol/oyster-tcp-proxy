@@ -1,21 +1,45 @@
-//https://github.com/tokio-rs/tokio/blob/master/examples/proxy.rs
-
+// Based on https://github.com/tokio-rs/tokio/blob/master/examples/proxy.rs
+//
+// Copyright (c) 2022 Tokio Contributors and Marlin Contributors
+//
+// Permission is hereby granted, free of charge, to any
+// person obtaining a copy of this software and associated
+// documentation files (the "Software"), to deal in the
+// Software without restriction, including without
+// limitation the rights to use, copy, modify, merge,
+// publish, distribute, sublicense, and/or sell copies of
+// the Software, and to permit persons to whom the Software
+// is furnished to do so, subject to the following
+// conditions:
+//
+// The above copyright notice and this permission notice
+// shall be included in all copies or substantial portions
+// of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF
+// ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+// TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+// PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT
+// SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+// IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
 
 #![warn(rust_2018_idioms)]
 
+use clap::Parser;
+use futures::FutureExt;
 use tokio::io;
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 use tokio_vsock::{VsockListener, VsockStream};
-use futures::FutureExt;
-use clap::Parser;
 
 use std::env;
 use std::error::Error;
 
-
-#[path = "utils.rs"] mod utils;
-
+#[path = "utils.rs"]
+mod utils;
 
 /// Creates a vsock proxy for ip server.
 #[derive(Parser)]
@@ -37,11 +61,10 @@ pub async fn vsock_to_ip(cid: u32, port: u32, ip_addr: &String) -> Result<(), Bo
     println!("Listening on: {:?}", listen_addr);
     println!("Proxying to: {:?}", server_addr);
 
-    let mut listener = VsockListener::bind(listen_addr.0, listen_addr.1).
-        expect("listener failed");
+    let mut listener = VsockListener::bind(listen_addr.0, listen_addr.1).expect("listener failed");
 
     while let Ok((inbound, _)) = listener.accept().await {
-        let transfer = transfer(inbound, server_addr.clone()).map(|r| { 
+        let transfer = transfer(inbound, server_addr.clone()).map(|r| {
             if let Err(e) = r {
                 println!("Failed to transfer; error={}", e);
             }
@@ -74,14 +97,14 @@ async fn transfer(mut inbound: VsockStream, proxy_addr: String) -> Result<(), Bo
     Ok(())
 }
 
-fn main(){
+fn main() {
     let cli = Cli::parse();
     let x = utils::split_vsock(&cli.vsock_addr).expect("vsock address not valid");
     match x {
         Some((cid, port)) => {
             let x = vsock_to_ip(cid, port, &cli.ip_addr);
             println!("{:?}", x);
-        },
+        }
         None => {}
     }
 }

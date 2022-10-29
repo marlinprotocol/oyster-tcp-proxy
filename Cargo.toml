@@ -11,6 +11,14 @@ path = "src/vsock_to_ip.rs"
 name = "ip-to-vsock"
 path = "src/ip_to_vsock.rs"
 
+[[bin]]
+name = "ip-to-vsock-transparent"
+path = "src/ip_to_vsock_transparent.rs"
+
+[[bin]]
+name = "vsock-to-ip-transparent"
+path = "src/vsock_to_ip_transparent.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -18,3 +26,6 @@ tokio = { version = "1.20.1", features = ["full"] }
 tokio-vsock = "0.3.2"
 futures = "0.3"
 clap = { version = "3.2.19", features = ["derive"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = "0.2"

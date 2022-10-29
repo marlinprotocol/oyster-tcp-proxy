@@ -26,7 +26,6 @@
 // IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-#![warn(rust_2018_idioms)]
 
 use clap::Parser;
 use futures::FutureExt;
@@ -35,10 +34,8 @@ use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 use tokio_vsock::{VsockListener, VsockStream};
 
-use std::env;
 use std::error::Error;
 
-#[path = "utils.rs"]
 mod utils;
 
 /// Creates a vsock proxy for ip server.
@@ -76,7 +73,7 @@ pub async fn vsock_to_ip(cid: u32, port: u32, ip_addr: &String) -> Result<(), Bo
     Ok(())
 }
 
-async fn transfer(mut inbound: VsockStream, proxy_addr: String) -> Result<(), Box<dyn Error>> {
+async fn transfer(inbound: VsockStream, proxy_addr: String) -> Result<(), Box<dyn Error>> {
     let mut outbound = TcpStream::connect(proxy_addr).await?;
 
     let (mut ri, mut wi) = io::split(inbound);

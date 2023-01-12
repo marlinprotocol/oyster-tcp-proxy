@@ -48,7 +48,7 @@ struct Cli {
     /// ip address of the proxy to be set up <ip:port>
     #[clap(short, long, value_parser)]
     ip_addr: String,
-    /// vsock address of the listener <cid:port>
+    /// vsock address of the listener <cid>
     #[clap(short, long, value_parser)]
     vsock: u32,
 }

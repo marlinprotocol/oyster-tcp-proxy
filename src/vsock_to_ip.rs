@@ -115,11 +115,8 @@ async fn transfer(inbound: VsockStream, proxy_addr: String) -> Result<()> {
 fn main() {
     let cli = Cli::parse();
     let x = utils::split_vsock(&cli.vsock_addr).expect("vsock address not valid");
-    match x {
-        Some((cid, port)) => {
-            let x = vsock_to_ip(cid, port, &cli.ip_addr);
-            println!("{:?}", x);
-        }
-        None => {}
+    if let Some((cid, port)) = x {
+        let x = vsock_to_ip(cid, port, &cli.ip_addr);
+        println!("{:?}", x);
     }
 }

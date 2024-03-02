@@ -27,7 +27,6 @@
 // DEALINGS IN THE SOFTWARE.
 
 mod addr_info;
-mod utils;
 
 use anyhow::{anyhow, Context, Result};
 use clap::Parser;
@@ -36,8 +35,6 @@ use tokio::io;
 use tokio::io::AsyncWriteExt;
 use tokio::net::{TcpListener, TcpStream};
 use tokio_vsock::{VsockAddr, VsockStream};
-
-use std::error::Error;
 
 use crate::addr_info::AddrInfo;
 

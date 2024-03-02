@@ -26,15 +26,13 @@
 // IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result};
 use clap::Parser;
 use futures::FutureExt;
 use tokio::io;
 use tokio::io::AsyncWriteExt;
 use tokio::net::{TcpListener, TcpStream};
 use tokio_vsock::{VsockAddr, VsockStream};
-
-use std::error::Error;
 
 mod utils;
 
@@ -63,7 +61,7 @@ pub async fn ip_to_vsock(ip_addr: &String, cid: u32, port: u32) -> Result<()> {
         .context("failed to bind listener")?;
 
     while let Ok((inbound, _)) = listener.accept().await {
-        let transfer = transfer(inbound, server_addr.clone()).map(|r| {
+        let transfer = transfer(inbound, server_addr).map(|r| {
             if let Err(e) = r {
                 println!("Failed to transfer; error={}", e);
             }
@@ -117,11 +115,8 @@ async fn transfer(mut inbound: TcpStream, proxy_addr: VsockAddr) -> Result<()> {
 fn main() {
     let cli = Cli::parse();
     let x = utils::split_vsock(&cli.vsock_addr).expect("vsock address not valid");
-    match x {
-        Some((cid, port)) => {
-            let x = ip_to_vsock(&cli.ip_addr, cid, port);
-            println!("{:?}", x);
-        }
-        None => {}
+    if let Some((cid, port)) = x {
+        let x = ip_to_vsock(&cli.ip_addr, cid, port);
+        println!("{:?}", x);
     }
 }

@@ -84,7 +84,7 @@ async fn transfer(inbound: VsockStream) -> Result<()> {
     );
     println!("Proxying to: {:?}", proxy_addr);
 
-    let mut outbound = TcpStream::connect(proxy_addr.clone())
+    let mut outbound = TcpStream::connect(proxy_addr)
         .await
         .context("failed to connect to endpoint")?;
 
@@ -121,11 +121,8 @@ async fn transfer(inbound: VsockStream) -> Result<()> {
 fn main() {
     let cli = Cli::parse();
     let x = utils::split_vsock(&cli.vsock_addr).expect("vsock address not valid");
-    match x {
-        Some((cid, port)) => {
-            let x = vsock_to_ip(cid, port);
-            println!("{:?}", x);
-        }
-        None => {}
+    if let Some((cid, port)) = x {
+        let x = vsock_to_ip(cid, port);
+        println!("{:?}", x);
     }
 }

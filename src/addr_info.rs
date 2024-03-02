@@ -224,7 +224,7 @@ impl<T: AddrInfo + ?Sized> AddrInfo for Box<T> {
 
 impl AddrInfo for TcpStream {
     fn local_addr(&self) -> Result<SocketAddr, io::Error> {
-        TcpStream::local_addr(&self)
+        TcpStream::local_addr(self)
     }
 
     #[cfg(target_os = "linux")]
@@ -245,7 +245,6 @@ impl AddrInfo for TcpStream {
 
 #[cfg(target_os = "linux")]
 mod linux {
-    use libc;
     use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
     use std::os::unix::io::RawFd;
     use std::{io, mem};

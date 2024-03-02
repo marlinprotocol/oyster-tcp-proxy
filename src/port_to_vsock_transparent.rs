@@ -82,12 +82,12 @@ async fn transfer(mut inbound: TcpStream, cid: u32) -> Result<()> {
 
     let proxy_addr = VsockAddr::new(cid, orig_dst.port().into());
 
-    let outbound = VsockStream::connect(proxy_addr)
+    let mut outbound = VsockStream::connect(proxy_addr)
         .await
         .context("failed to connect vsock")?;
 
     let (mut ri, mut wi) = inbound.split();
-    let (mut ro, mut wo) = io::split(outbound);
+    let (mut ro, mut wo) = outbound.split();
 
     let client_to_server = async {
         io::copy(&mut ri, &mut wo)

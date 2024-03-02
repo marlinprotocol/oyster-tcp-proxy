@@ -78,12 +78,12 @@ async fn transfer(mut inbound: TcpStream, proxy_addr: VsockAddr) -> Result<()> {
         .ok_or(anyhow!("Failed to retrieve original destination"))?;
     println!("Original destination: {}", orig_dst);
 
-    let outbound = VsockStream::connect(proxy_addr)
+    let mut outbound = VsockStream::connect(proxy_addr)
         .await
         .context("failed to connect to endpoint")?;
 
     let (mut ri, mut wi) = inbound.split();
-    let (mut ro, mut wo) = io::split(outbound);
+    let (mut ro, mut wo) = outbound.split();
 
     // send ip and port
     wo.write_u32_le(if let std::net::SocketAddr::V4(v4) = orig_dst {

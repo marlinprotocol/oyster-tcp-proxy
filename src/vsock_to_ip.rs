@@ -67,7 +67,7 @@ pub async fn proxy(listen_addr: VsockAddr, server_addr: &String) -> Result<()> {
     Ok(())
 }
 
-async fn transfer(inbound: VsockStream, proxy_addr: String) -> Result<()> {
+async fn transfer(mut inbound: VsockStream, proxy_addr: String) -> Result<()> {
     let mut outbound = TcpStream::connect(proxy_addr.clone())
         .await
         .context("failed to connect to endpoint")?;
@@ -77,7 +77,7 @@ async fn transfer(inbound: VsockStream, proxy_addr: String) -> Result<()> {
         .context("could not fetch inbound addr")?
         .to_string();
 
-    let (mut ri, mut wi) = io::split(inbound);
+    let (mut ri, mut wi) = inbound.split();
     let (mut ro, mut wo) = outbound.split();
 
     let client_to_server = async {

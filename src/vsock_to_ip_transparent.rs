@@ -65,13 +65,13 @@ pub async fn proxy(listen_addr: VsockAddr) -> Result<()> {
     Ok(())
 }
 
-async fn transfer(inbound: VsockStream) -> Result<()> {
+async fn transfer(mut inbound: VsockStream) -> Result<()> {
     let inbound_addr = inbound
         .peer_addr()
         .context("could not fetch inbound addr")?
         .to_string();
 
-    let (mut ri, mut wi) = io::split(inbound);
+    let (mut ri, mut wi) = inbound.split();
 
     // read ip and port
     let proxy_addr = SocketAddr::new(

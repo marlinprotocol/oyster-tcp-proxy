@@ -26,15 +26,13 @@
 // IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-
+use anyhow::{Context, Result};
 use clap::Parser;
 use futures::FutureExt;
 use tokio::io;
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 use tokio_vsock::{VsockListener, VsockStream};
-
-use std::error::Error;
 
 mod utils;
 
@@ -51,7 +49,7 @@ struct Cli {
 }
 
 #[tokio::main]
-pub async fn vsock_to_ip(cid: u32, port: u32, ip_addr: &String) -> Result<(), Box<dyn Error>> {
+pub async fn vsock_to_ip(cid: u32, port: u32, ip_addr: &String) -> Result<()> {
     let listen_addr = (cid, port);
     let server_addr = ip_addr;
 
@@ -73,23 +71,43 @@ pub async fn vsock_to_ip(cid: u32, port: u32, ip_addr: &String) -> Result<(), Bo
     Ok(())
 }
 
-async fn transfer(inbound: VsockStream, proxy_addr: String) -> Result<(), Box<dyn Error>> {
-    let mut outbound = TcpStream::connect(proxy_addr).await?;
+async fn transfer(inbound: VsockStream, proxy_addr: String) -> Result<()> {
+    let mut outbound = TcpStream::connect(proxy_addr.clone())
+        .await
+        .context("failed to connect to endpoint")?;
+
+    let inbound_addr = inbound
+        .local_addr()
+        .context("could not fetch inbound addr")?
+        .to_string();
 
     let (mut ri, mut wi) = io::split(inbound);
     let (mut ro, mut wo) = outbound.split();
 
     let client_to_server = async {
-        io::copy(&mut ri, &mut wo).await?;
+        io::copy(&mut ri, &mut wo)
+            .await
+            .context("error in vsock to ip copy")
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+        println!("vsock to ip copy exited");
         wo.shutdown().await
     };
 
     let server_to_client = async {
-        io::copy(&mut ro, &mut wi).await?;
+        io::copy(&mut ro, &mut wi)
+            .await
+            .context("error in ip to vsock copy")
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+        println!("ip to vsock copy exited");
         wi.shutdown().await
     };
 
-    tokio::try_join!(client_to_server, server_to_client)?;
+    tokio::try_join!(client_to_server, server_to_client).with_context(|| {
+        format!(
+            "error in connection between {} and {}",
+            inbound_addr, proxy_addr
+        )
+    })?;
 
     Ok(())
 }

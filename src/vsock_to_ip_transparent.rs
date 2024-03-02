@@ -26,20 +26,18 @@
 // IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-
-mod utils;
 mod addr_info;
+mod utils;
 
+use anyhow::{Context, Result};
 use clap::Parser;
 use futures::FutureExt;
+use std::net::{IpAddr, SocketAddr};
 use tokio::io;
-use tokio::io::AsyncWriteExt;
 use tokio::io::AsyncReadExt;
+use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 use tokio_vsock::{VsockListener, VsockStream};
-use std::net::{SocketAddr, IpAddr};
-
-use std::error::Error;
 
 /// Creates a vsock proxy for ip server.
 #[derive(Parser)]
@@ -51,7 +49,7 @@ struct Cli {
 }
 
 #[tokio::main]
-pub async fn vsock_to_ip(cid: u32, port: u32) -> Result<(), Box<dyn Error>> {
+pub async fn vsock_to_ip(cid: u32, port: u32) -> Result<()> {
     let listen_addr = (cid, port);
 
     println!("Listening on: {:?}", listen_addr);
@@ -61,7 +59,7 @@ pub async fn vsock_to_ip(cid: u32, port: u32) -> Result<(), Box<dyn Error>> {
     while let Ok((inbound, _)) = listener.accept().await {
         let transfer = transfer(inbound).map(|r| {
             if let Err(e) = r {
-                println!("Failed to transfer; error={}", e);
+                println!("Failed to transfer; error={:?}", e);
             }
         });
 
@@ -71,28 +69,51 @@ pub async fn vsock_to_ip(cid: u32, port: u32) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-async fn transfer(inbound: VsockStream) -> Result<(), Box<dyn Error>> {
+async fn transfer(inbound: VsockStream) -> Result<()> {
+    let inbound_addr = inbound
+        .peer_addr()
+        .context("could not fetch inbound addr")?
+        .to_string();
+
     let (mut ri, mut wi) = io::split(inbound);
 
     // read ip and port
-    let proxy_addr = SocketAddr::new(IpAddr::V4(ri.read_u32_le().await?.into()), ri.read_u16_le().await?);
+    let proxy_addr = SocketAddr::new(
+        IpAddr::V4(ri.read_u32_le().await?.into()),
+        ri.read_u16_le().await?,
+    );
     println!("Proxying to: {:?}", proxy_addr);
 
-    let mut outbound = TcpStream::connect(proxy_addr).await?;
+    let mut outbound = TcpStream::connect(proxy_addr.clone())
+        .await
+        .context("failed to connect to endpoint")?;
 
     let (mut ro, mut wo) = outbound.split();
 
     let client_to_server = async {
-        io::copy(&mut ri, &mut wo).await?;
+        io::copy(&mut ri, &mut wo)
+            .await
+            .context("error in vsock to ip copy")
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+        println!("vsock to ip copy exited {}", proxy_addr);
         wo.shutdown().await
     };
 
     let server_to_client = async {
-        io::copy(&mut ro, &mut wi).await?;
+        io::copy(&mut ro, &mut wi)
+            .await
+            .context("error in ip to vsock copy")
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+        println!("ip to vsock copy exited {}", proxy_addr);
         wi.shutdown().await
     };
 
-    tokio::try_join!(client_to_server, server_to_client)?;
+    tokio::try_join!(client_to_server, server_to_client).with_context(|| {
+        format!(
+            "error in connection between {} and {}",
+            inbound_addr, proxy_addr
+        )
+    })?;
 
     Ok(())
 }

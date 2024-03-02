@@ -48,7 +48,7 @@ struct Cli {
     ip_addr: String,
 }
 
-pub async fn proxy(listen_addr: VsockAddr, server_addr: &String) -> Result<()> {
+pub async fn proxy(listen_addr: VsockAddr, server_addr: String) -> Result<()> {
     println!("Listening on: {:?}", listen_addr);
     println!("Proxying to: {:?}", server_addr);
 
@@ -112,7 +112,7 @@ async fn transfer(mut inbound: VsockStream, proxy_addr: String) -> Result<()> {
 async fn main() -> Result<()> {
     let cli = Cli::parse();
     let vsock_addr = utils::split_vsock(&cli.vsock_addr)?;
-    proxy(vsock_addr, &cli.ip_addr).await?;
+    proxy(vsock_addr, cli.ip_addr).await?;
 
     Ok(())
 }

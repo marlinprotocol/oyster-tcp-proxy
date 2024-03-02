@@ -48,7 +48,7 @@ struct Cli {
     vsock: u32,
 }
 
-pub async fn port_to_vsock(listen_addr: &String, cid: u32) -> Result<()> {
+pub async fn port_to_vsock(listen_addr: &str, cid: u32) -> Result<()> {
     println!("Listening on: {}", listen_addr);
     println!("Proxying to: {:?}", cid);
 

@@ -48,7 +48,7 @@ struct Cli {
     vsock_addr: String,
 }
 
-pub async fn proxy(listen_addr: &String, server_addr: VsockAddr) -> Result<()> {
+pub async fn proxy(listen_addr: &str, server_addr: VsockAddr) -> Result<()> {
     println!("Listening on: {}", listen_addr);
     println!("Proxying to: {:?}", server_addr);
 

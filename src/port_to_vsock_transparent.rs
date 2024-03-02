@@ -34,7 +34,7 @@ use futures::FutureExt;
 use tokio::io;
 use tokio::io::AsyncWriteExt;
 use tokio::net::{TcpListener, TcpStream};
-use tokio_vsock::VsockStream;
+use tokio_vsock::{VsockAddr, VsockStream};
 
 use std::error::Error;
 
@@ -80,9 +80,9 @@ async fn transfer(mut inbound: TcpStream, cid: u32) -> Result<(), Box<dyn Error>
         .ok_or("Failed to retrieve original destination")?;
     println!("Original destination: {}", orig_dst);
 
-    let proxy_addr = (cid, orig_dst.port().into());
+    let proxy_addr = VsockAddr::new(cid, orig_dst.port().into());
 
-    let outbound = VsockStream::connect(proxy_addr.0, proxy_addr.1).await?;
+    let outbound = VsockStream::connect(proxy_addr).await?;
 
     let (mut ri, mut wi) = inbound.split();
     let (mut ro, mut wo) = io::split(outbound);

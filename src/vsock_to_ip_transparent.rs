@@ -37,7 +37,7 @@ use tokio::io;
 use tokio::io::AsyncReadExt;
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
-use tokio_vsock::{VsockListener, VsockStream};
+use tokio_vsock::{VsockAddr, VsockListener, VsockStream};
 
 /// Creates a vsock proxy for ip server.
 #[derive(Parser)]
@@ -50,11 +50,11 @@ struct Cli {
 
 #[tokio::main]
 pub async fn vsock_to_ip(cid: u32, port: u32) -> Result<()> {
-    let listen_addr = (cid, port);
+    let listen_addr = VsockAddr::new(cid, port);
 
     println!("Listening on: {:?}", listen_addr);
 
-    let mut listener = VsockListener::bind(listen_addr.0, listen_addr.1).expect("listener failed");
+    let mut listener = VsockListener::bind(listen_addr).expect("listener failed");
 
     while let Ok((inbound, _)) = listener.accept().await {
         let transfer = transfer(inbound).map(|r| {

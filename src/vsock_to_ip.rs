@@ -32,7 +32,7 @@ use futures::FutureExt;
 use tokio::io;
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
-use tokio_vsock::{VsockListener, VsockStream};
+use tokio_vsock::{VsockAddr, VsockListener, VsockStream};
 
 mod utils;
 
@@ -50,13 +50,13 @@ struct Cli {
 
 #[tokio::main]
 pub async fn vsock_to_ip(cid: u32, port: u32, ip_addr: &String) -> Result<()> {
-    let listen_addr = (cid, port);
+    let listen_addr = VsockAddr::new(cid, port);
     let server_addr = ip_addr;
 
     println!("Listening on: {:?}", listen_addr);
     println!("Proxying to: {:?}", server_addr);
 
-    let mut listener = VsockListener::bind(listen_addr.0, listen_addr.1).expect("listener failed");
+    let mut listener = VsockListener::bind(listen_addr).expect("listener failed");
 
     while let Ok((inbound, _)) = listener.accept().await {
         let transfer = transfer(inbound, server_addr.clone()).map(|r| {

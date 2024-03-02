@@ -35,7 +35,7 @@ use futures::FutureExt;
 use tokio::io;
 use tokio::io::AsyncWriteExt;
 use tokio::net::{TcpListener, TcpStream};
-use tokio_vsock::VsockStream;
+use tokio_vsock::{VsockAddr, VsockStream};
 
 use std::error::Error;
 
@@ -56,7 +56,7 @@ struct Cli {
 #[tokio::main]
 pub async fn ip_to_vsock(ip_addr: &String, cid: u32, port: u32) -> Result<()> {
     let listen_addr = ip_addr;
-    let server_addr = (cid, port);
+    let server_addr = VsockAddr::new(cid, port);
 
     println!("Listening on: {}", listen_addr);
     println!("Proxying to: {:?}", server_addr);
@@ -76,7 +76,7 @@ pub async fn ip_to_vsock(ip_addr: &String, cid: u32, port: u32) -> Result<()> {
     Ok(())
 }
 
-async fn transfer(mut inbound: TcpStream, proxy_addr: (u32, u32)) -> Result<()> {
+async fn transfer(mut inbound: TcpStream, proxy_addr: VsockAddr) -> Result<()> {
     let inbound_addr = inbound
         .peer_addr()
         .context("could not fetch inbound addr")?
@@ -87,7 +87,7 @@ async fn transfer(mut inbound: TcpStream, proxy_addr: (u32, u32)) -> Result<()> 
         .ok_or(anyhow!("Failed to retrieve original destination"))?;
     println!("Original destination: {}", orig_dst);
 
-    let outbound = VsockStream::connect(proxy_addr.0, proxy_addr.1)
+    let outbound = VsockStream::connect(proxy_addr)
         .await
         .context("failed to connect to endpoint")?;
 

@@ -26,9 +26,8 @@
 // IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-
-mod utils;
 mod addr_info;
+mod utils;
 
 use clap::Parser;
 use futures::FutureExt;
@@ -76,7 +75,9 @@ pub async fn port_to_vsock(ip_addr: &String, cid: u32) -> Result<(), Box<dyn Err
 }
 
 async fn transfer(mut inbound: TcpStream, cid: u32) -> Result<(), Box<dyn Error>> {
-    let orig_dst = inbound.get_original_dst().ok_or("Failed to retrieve original destination")?;
+    let orig_dst = inbound
+        .get_original_dst()
+        .ok_or("Failed to retrieve original destination")?;
     println!("Original destination: {}", orig_dst);
 
     let proxy_addr = (cid, orig_dst.port().into());

@@ -29,6 +29,7 @@
 mod addr_info;
 mod utils;
 
+use anyhow::{anyhow, Context, Result};
 use clap::Parser;
 use futures::FutureExt;
 use tokio::io;
@@ -53,13 +54,15 @@ struct Cli {
 }
 
 #[tokio::main]
-pub async fn port_to_vsock(ip_addr: &String, cid: u32) -> Result<(), Box<dyn Error>> {
+pub async fn port_to_vsock(ip_addr: &String, cid: u32) -> Result<()> {
     let listen_addr = ip_addr;
 
     println!("Listening on: {}", listen_addr);
     println!("Proxying to: {:?}", cid);
 
-    let listener = TcpListener::bind(listen_addr).await?;
+    let listener = TcpListener::bind(listen_addr)
+        .await
+        .context("failed to bind listener")?;
 
     while let Ok((inbound, _)) = listener.accept().await {
         let transfer = transfer(inbound, cid).map(|r| {
@@ -74,30 +77,48 @@ pub async fn port_to_vsock(ip_addr: &String, cid: u32) -> Result<(), Box<dyn Err
     Ok(())
 }
 
-async fn transfer(mut inbound: TcpStream, cid: u32) -> Result<(), Box<dyn Error>> {
+async fn transfer(mut inbound: TcpStream, cid: u32) -> Result<()> {
+    let inbound_addr = inbound
+        .peer_addr()
+        .context("could not fetch inbound addr")?
+        .to_string();
+
     let orig_dst = inbound
         .get_original_dst()
-        .ok_or("Failed to retrieve original destination")?;
+        .ok_or(anyhow!("Failed to retrieve original destination"))?;
     println!("Original destination: {}", orig_dst);
 
     let proxy_addr = VsockAddr::new(cid, orig_dst.port().into());
 
-    let outbound = VsockStream::connect(proxy_addr).await?;
+    let outbound = VsockStream::connect(proxy_addr)
+        .await
+        .context("failed to connect vsock")?;
 
     let (mut ri, mut wi) = inbound.split();
     let (mut ro, mut wo) = io::split(outbound);
 
     let client_to_server = async {
-        io::copy(&mut ri, &mut wo).await?;
+        io::copy(&mut ri, &mut wo)
+            .await
+            .context("error in port to vsock copy")
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
         wo.shutdown().await
     };
 
     let server_to_client = async {
-        io::copy(&mut ro, &mut wi).await?;
+        io::copy(&mut ro, &mut wi)
+            .await
+            .context("error in vsock to port copy")
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
         wi.shutdown().await
     };
 
-    tokio::try_join!(client_to_server, server_to_client)?;
+    tokio::try_join!(client_to_server, server_to_client).with_context(|| {
+        format!(
+            "error in connection between {} and {}",
+            inbound_addr, proxy_addr
+        )
+    })?;
 
     Ok(())
 }

@@ -34,7 +34,7 @@ use tokio::io::AsyncWriteExt;
 use tokio::net::{TcpListener, TcpStream};
 use tokio_vsock::{VsockAddr, VsockStream};
 
-mod utils;
+use oyster_tcp_proxy::utils;
 
 /// Creates a ip proxy for vsock server.
 #[derive(Parser)]

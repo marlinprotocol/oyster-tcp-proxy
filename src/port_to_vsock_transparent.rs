@@ -26,8 +26,6 @@
 // IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-mod addr_info;
-
 use anyhow::{anyhow, Context, Result};
 use clap::Parser;
 use futures::FutureExt;
@@ -36,7 +34,7 @@ use tokio::io::AsyncWriteExt;
 use tokio::net::{TcpListener, TcpStream};
 use tokio_vsock::{VsockAddr, VsockStream};
 
-use crate::addr_info::AddrInfo;
+use oyster_tcp_proxy::addr_info::AddrInfo;
 
 /// Creates a ip proxy for vsock server.
 #[derive(Parser)]

@@ -48,9 +48,7 @@ struct Cli {
     vsock: u32,
 }
 
-pub async fn port_to_vsock(ip_addr: &String, cid: u32) -> Result<()> {
-    let listen_addr = ip_addr;
-
+pub async fn port_to_vsock(listen_addr: &String, cid: u32) -> Result<()> {
     println!("Listening on: {}", listen_addr);
     println!("Proxying to: {:?}", cid);
 
@@ -120,8 +118,7 @@ async fn transfer(mut inbound: TcpStream, cid: u32) -> Result<()> {
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
-    let x = port_to_vsock(&cli.ip_addr, cli.vsock).await;
-    println!("{:?}", x);
+    port_to_vsock(&cli.ip_addr, cli.vsock).await?;
 
     Ok(())
 }

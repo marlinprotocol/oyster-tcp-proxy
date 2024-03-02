@@ -1,10 +1,23 @@
 use std::num::ParseIntError;
 
-pub fn split_vsock(addr: &str) -> Result<Option<(u32, u32)>, ParseIntError> {
-    let opt = addr.split_once(':').map(|(cid, port)| {
-        cid.parse::<u32>()
-            .and_then(|cid| port.parse::<u32>().map(|port| (cid, port)))
-    });
+use tokio_vsock::VsockAddr;
 
-    opt.map_or(Ok(None), |r| r.map(Some))
+#[derive(thiserror::Error, Debug)]
+pub enum VsockAddrParseError {
+    #[error("invalid vsock address, should contain one : (colon)")]
+    SplitError,
+    #[error("failed to parse cid as a u32")]
+    CidParseError(#[source] ParseIntError),
+    #[error("failed to parse port as a u32")]
+    PortParseError(#[source] ParseIntError),
+}
+
+pub fn split_vsock(addr: &str) -> Result<VsockAddr, VsockAddrParseError> {
+    let (cid, port) = addr
+        .split_once(':')
+        .ok_or(VsockAddrParseError::SplitError)?;
+    let cid = cid.parse().map_err(VsockAddrParseError::CidParseError)?;
+    let port = port.parse().map_err(VsockAddrParseError::PortParseError)?;
+
+    Ok(VsockAddr::new(cid, port))
 }

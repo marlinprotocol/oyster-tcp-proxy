@@ -1,5 +1,5 @@
 [package]
-name = "tokio-proxy"
+name = "oyster-tcp-proxy"
 version = "1.0.0"
 edition = "2021"
 
@@ -39,4 +39,3 @@ libc = "0.2"
 strip = true
 lto = true
 panic = "abort"
-

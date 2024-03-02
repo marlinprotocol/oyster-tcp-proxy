@@ -36,14 +36,12 @@ use tokio_vsock::{VsockAddr, VsockStream};
 
 use oyster_tcp_proxy::addr_info::AddrInfo;
 
-/// Creates a ip proxy for vsock server.
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
 struct Cli {
-    /// ip address of the proxy to be set up <ip:port>
     #[clap(short, long, value_parser)]
     ip_addr: String,
-    /// vsock address of the listener <cid>
+
     #[clap(short, long, value_parser)]
     vsock: u32,
 }

@@ -39,9 +39,11 @@ use oyster_tcp_proxy::addr_info::AddrInfo;
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
 struct Cli {
+    /// ip address of the listener side (e.g. 127.0.0.1:1200)
     #[clap(short, long, value_parser)]
     ip_addr: String,
 
+    /// vsock address of the upstream side (e.g. 88:1200)
     #[clap(short, long, value_parser)]
     vsock: u32,
 }

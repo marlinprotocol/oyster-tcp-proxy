@@ -41,6 +41,7 @@ use oyster_tcp_proxy::utils;
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
 struct Cli {
+    /// vsock address of the listener side, usually open to the other side of the transparent proxy (e.g. 3:1200)
     #[clap(short, long, value_parser)]
     vsock_addr: String,
 }

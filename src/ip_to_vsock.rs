@@ -39,9 +39,11 @@ use oyster_tcp_proxy::utils;
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
 struct Cli {
+    /// ip address of the listener side (e.g. 0.0.0.0:4000)
     #[clap(short, long, value_parser)]
     ip_addr: String,
 
+    /// vsock address of the upstream side (e.g. 88:4000)
     #[clap(short, long, value_parser)]
     vsock_addr: String,
 }

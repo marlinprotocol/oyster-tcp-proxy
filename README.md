@@ -15,6 +15,20 @@ This repository contains TCP proxies used to bridge between IP interfaces and vs
 cargo build --release
 ```
 
+### Reproducible builds
+
+Reproducible builds can be done using a Rust Docker image to standardize the build environment:
+
+```bash
+# For amd64
+docker run --rm -v `pwd`:/code rust@sha256:ed7795c6eaccae53be35939e883e8c3de0197b21e8eddbd9f04b0c4bc757c094 /code/build-amd64.sh
+
+# For arm64
+docker run --rm -v `pwd`:/code rust@sha256:c428882ff081342a9661fb13a1d059ecdc0b6e979ffec64b80371cf20a2088b0 /code/build-arm64.sh
+```
+
+The prebuilt binaries are then compressed using `upx` version 4.2.4. Expected sha256 checksums are available along with the links to the prebuilt binaries.
+
 ## ip-to-vsock
 
 The ip-to-vsock proxy listens on a fixed IP address and proxies any incoming connections to a fixed vsock address.
@@ -22,8 +36,10 @@ The ip-to-vsock proxy listens on a fixed IP address and proxies any incoming con
 ### Prebuilt binaries
 
 amd64: http://public.artifacts.marlin.pro/projects/enclaves/ip-to-vsock_v1.0.0_linux_amd64
+checksum: 9ee610acc9fb3ceaa446732a0c93c892c75e8e339dde955fdc205ba6ac290154
 
 arm64: http://public.artifacts.marlin.pro/projects/enclaves/ip-to-vsock_v1.0.0_linux_arm64
+checksum: 8fcc4c7484ee703fe5d0eabe45a4e987941ae258d324318d70220b0836879300
 
 ### Usage
 
@@ -45,8 +61,10 @@ The vsock-to-ip proxy listens on a fixed vsock address and proxies any incoming 
 ### Prebuilt binaries
 
 amd64: http://public.artifacts.marlin.pro/projects/enclaves/vsock-to-ip_v1.0.0_linux_amd64
+checksum: 8ad67e28b18a742c3b94078954021215b57a287ee634f09556efabcac0b99597
 
 arm64: http://public.artifacts.marlin.pro/projects/enclaves/vsock-to-ip_v1.0.0_linux_arm64
+checksum: c55bd946a100f8e49b75c46e2e5d4bbb6be134e2f35b0d0927afeeca55fba5d0
 
 ### Usage
 
@@ -68,8 +86,10 @@ The ip-to-vsock-transparent proxy listens on a fixed IP address and proxies any 
 ### Prebuilt binaries
 
 amd64: http://public.artifacts.marlin.pro/projects/enclaves/ip-to-vsock-transparent_v1.0.0_linux_amd64
+checksum: 15ecdf4ed7c0a3f65ebfa2fb10f0c1cb60e67677162db8cca6915aabb5afd4b9
 
 arm64: http://public.artifacts.marlin.pro/projects/enclaves/ip-to-vsock-transparent_v1.0.0_linux_arm64
+checksum: 4a1beedb1a956e350ab38d52d3bfb557aff37562a10c7f42ca394c0e2f574a7e
 
 ### Usage
 
@@ -91,8 +111,10 @@ The vsock-to-ip-transparent proxy listens on a fixed vsock address and proxies a
 ### Prebuilt binaries
 
 amd64: http://public.artifacts.marlin.pro/projects/enclaves/vsock-to-ip-transparent_v1.0.0_linux_amd64
+checksum: 0a280f2bc85007e115be6f6e906eebc50c671e402d6fa5f7d531b0ad77c11ccd
 
 arm64: http://public.artifacts.marlin.pro/projects/enclaves/vsock-to-ip-transparent_v1.0.0_linux_arm64
+checksum: 4ac1f337b1239d445b85c0dc3904ba57aec0f3d816b4d8120c26f5e0af0acfc1
 
 ### Usage
 
@@ -113,8 +135,10 @@ The port-to-vsock-transparent proxy listens on a fixed IP address and proxies an
 ### Prebuilt binaries
 
 amd64: http://public.artifacts.marlin.pro/projects/enclaves/port-to-vsock-transparent_v1.0.0_linux_amd64
+checksum: 4243a018123ead1f8c35d604b8455a64917dc90df34a2865a96a484ee8009bc8
 
 arm64: http://public.artifacts.marlin.pro/projects/enclaves/port-to-vsock-transparent_v1.0.0_linux_arm64
+checksum: 565c188eaa8996e4204a7934e6c963a9908ff8fa6570cb4d5572dfee09c58059
 
 ### Usage
 

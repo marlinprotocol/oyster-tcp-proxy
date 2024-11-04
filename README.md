@@ -1,3 +1,7 @@
+# Archival
+
+Archived in favour of https://github.com/marlinprotocol/oyster-monorepo
+
 ![Marlin Oyster Logo](./logo.svg)
 
 # TCP Proxies
